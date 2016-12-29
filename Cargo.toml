@@ -6,3 +6,8 @@ authors = ["Jorg Bornschein <jb@capsec.org>"]
 [dependencies]
 rocket = "0.1.2"
 rocket_codegen = "0.1.2"
+
+[dependencies.rocket_contrib]
+version = "*"
+default-features = false
+features = ["handlebars_templates", "tera_templates"]
