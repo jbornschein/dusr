@@ -1,62 +1,75 @@
 #![feature(plugin, proc_macro, custom_derive)]
 #![plugin(rocket_codegen)]
 
+#[macro_use]
+extern crate maplit;
+
+// mod nsupdate;
+mod xforwardedfor;
+
 extern crate rocket_contrib;
 extern crate rocket;
 // extern crate serde_json;
 // #[macro_use] extern crate serde_derive;
 
-use std::collections::HashMap;
+// use std::collections::HashMap;
+use std::net::IpAddr;
 
-use rocket::{Request};
-use rocket::response::Redirect;
+// use rocket::http::uri::URI;
+// use rocket::response::Redirect;
 use rocket_contrib::Template;
 
-mod nsupdate;
+// use nsupdate::Updater;
+use xforwardedfor::XForwardedFor;
+
+/////////////////////////////////////////////////////////////////////////////
 
 #[derive(Debug, FromForm)]
 struct UpdateArgs {
     token: Option<String>,
-    ip: Option<String>
+    ip: Option<IpAddr>
 }
 
-// #[derive(Serialise)]
-// struct IndexContext {
-//     domain: String
-// }
-
-
 #[get("/")]
-fn index() -> Template {
-    // format!("index!")
-    let mut context = HashMap::new();
-    context.insert("name", "test.capsec.org");
-
+fn index(xforwarded: XForwardedFor) -> Template {
+    let context = hashmap!{
+        "name" => "test.capsec.org"
+    };
     Template::render("index", &context)
 }
 
 #[get("/update/<name>?<args>")]
-fn update(name: &str, args: UpdateArgs) -> String {
-    match args.token {
-        None => {
-            format!("Missing token!")
-        }
-        Some(ref token) => {
-            println!("Arguments:");
-            println!("{:?}", args);
-            format!("Name: {}", name)
-        }
+fn update(name: &str, args: UpdateArgs) -> Template {
+    if let Some(ref token) = args.token {
+        println!("Arguments: {:?}", args);
+
+        // println!("Request: {:?}", req);
+        // let  args.ip.parse()
+
+        let context = hashmap!{
+            "name" => name,
+        };
+        Template::render("update", &context)
+    } else {
+        let context = hashmap!{
+            "name" => name,
+        };
+        Template::render("denied", &context)
     }
 }
 
+#[error(404)]
+fn not_found(req: &rocket::Request) -> String {
+    format!("<p>Sorry, but '{}' is not a valid path!</p>", req.uri())
+}
+
 fn main() {
-    // match nsupdate::update_dns("hallo", "du") {
-    //     Ok(_) => println!("update_dns: Ok!"),
-    //     Err(why) => panic!("update_dns failed: {:?}", why)
-    // }
+    // Create DNS update service
+
 
     // Start webservice
     rocket::ignite()
         .mount("/", routes![index, update])
+        .catch(errors![not_found])
         .launch();
 }
