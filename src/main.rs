@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate maplit;
 
-// mod nsupdate;
+mod nsupdate;
 mod xforwardedfor;
 
 extern crate rocket_contrib;
@@ -30,16 +30,29 @@ struct UpdateArgs {
     ip: Option<IpAddr>
 }
 
+#[derive(Debug, FromForm)]
+struct AdminArgs {
+    token: Option<String>,
+}
+
 #[get("/")]
-fn index(xforwarded: XForwardedFor) -> Template {
+fn index() -> Template {
     let context = hashmap!{
         "name" => "test.capsec.org"
     };
     Template::render("index", &context)
 }
 
+#[get("/admin?<args>")]
+fn admin(args: UpdateArgs) -> Template {
+    let context = hashmap!{
+        "name" => "test",
+    };
+    Template::render("admin", &context)
+}
+
 #[get("/update/<name>?<args>")]
-fn update(name: &str, args: UpdateArgs) -> Template {
+fn update(name: &str, args: UpdateArgs, xforwarded: XForwardedFor) -> Template {
     if let Some(ref token) = args.token {
         println!("Arguments: {:?}", args);
 

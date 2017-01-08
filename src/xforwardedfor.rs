@@ -2,7 +2,6 @@
 use std::net::IpAddr;
 use std::str::FromStr;
 
-use rocket::http::{Method, Header};
 use rocket::Request;
 use rocket::request::{FromRequest, Outcome};
 use rocket::outcome::Outcome::*;
@@ -45,6 +44,9 @@ impl<'a, 'r> FromRequest<'a, 'r> for XForwardedFor {
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+#[cfg(test)]
+use rocket::http::{Method, Header};
 
 #[test]
 fn test_empty() {
