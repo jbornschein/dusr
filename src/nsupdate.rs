@@ -83,6 +83,7 @@ impl Updater {
 
 
 #[test]
+#[ignore]
 fn test_update_dns() {
     let updater = Updater::new();
     let ip: IpAddr = "1.1.1.1".parse().unwrap();
